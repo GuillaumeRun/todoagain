@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 const App = () => {
-  const [todos, setTodos] = React.useState([]);
-  const [todo, setTodo] = React.useState("");
-  const [todoEditing, setTodoEditing] = React.useState(null);
-  const [editingText, setEditingText] = React.useState("");
+  const [todos, setTodos] = useState([]);
+  const [todo, setTodo] = useState("");
+  const [todoEditing, setTodoEditing] = useState(null);
+  const [editingText, setEditingText] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     const json = localStorage.getItem("todos");
     const loadedTodos = JSON.parse(json);
     if (loadedTodos) {
@@ -15,7 +15,7 @@ const App = () => {
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const json = JSON.stringify(todos);
     localStorage.setItem("todos", json);
   }, [todos]);
@@ -28,32 +28,26 @@ const App = () => {
       text: todo,
       completed: false,
     };
-    setTodos([...todos].concat(newTodo));
+    setTodos([...todos, newTodo]);
     setTodo("");
   }
 
   function deleteTodo(id) {
-    let updatedTodos = [...todos].filter((todo) => todo.id !== id);
+    const updatedTodos = todos.filter((todo) => todo.id !== id);
     setTodos(updatedTodos);
   }
 
   function toggleComplete(id) {
-    let updatedTodos = [...todos].map((todo) => {
-      if (todo.id === id) {
-        todo.completed = !todo.completed;
-      }
-      return todo;
-    });
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
     setTodos(updatedTodos);
   }
 
   function submitEdits(id) {
-    const updatedTodos = [...todos].map((todo) => {
-      if (todo.id === id) {
-        todo.text = editingText;
-      }
-      return todo;
-    });
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, text: editingText } : todo
+    );
     setTodos(updatedTodos);
     setTodoEditing(null);
   }
@@ -69,32 +63,33 @@ const App = () => {
         />
         <button type="submit">Add Todo</button>
       </form>
-      {todos.map((todo) => (
-        <div key={todo.id} className="todo">
+      {todos.map((todoItem) => (
+        <div key={todoItem.id} className="todo">
           <div className="todo-text">
             <input
               type="checkbox"
-              id="completed"
-              checked={todo.completed}
-              onChange={() => toggleComplete(todo.id)}
+              id={`completed-${todoItem.id}`}
+              checked={todoItem.completed}
+              onChange={() => toggleComplete(todoItem.id)}
             />
-            {todo.id === todoEditing ? (
+            {todoItem.id === todoEditing ? (
               <input
                 type="text"
                 onChange={(e) => setEditingText(e.target.value)}
+                value={editingText}
               />
             ) : (
-              <div>{todo.text}</div>
+              <div>{todoItem.text}</div>
             )}
           </div>
           <div className="todo-actions">
-            {todo.id === todoEditing ? (
-              <button onClick={() => submitEdits(todo.id)}>Submit Edits</button>
+            {todoItem.id === todoEditing ? (
+              <button onClick={() => submitEdits(todoItem.id)}>Submit Edits</button>
             ) : (
-              <button onClick={() => setTodoEditing(todo.id)}>Edit</button>
+              <button onClick={() => setTodoEditing(todoItem.id)}>Edit</button>
             )}
 
-            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+            <button onClick={() => deleteTodo(todoItem.id)}>Delete</button>
           </div>
         </div>
       ))}
